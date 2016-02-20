@@ -1,11 +1,18 @@
 {
   "name": "zterm",
   "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
+  "description": "A terminal emulator use electron",
+  "main": "dist/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron ."
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.5.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-rollup": "^1.7.0",
+    "rollup": "^0.25.4"
+  }
 }
