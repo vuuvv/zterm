@@ -14,5 +14,8 @@
     "gulp-babel": "^6.1.2",
     "gulp-rollup": "^1.7.0",
     "rollup": "^0.25.4"
+  },
+  "dependencies": {
+    "jquery": "^2.2.0"
   }
 }
