@@ -39,7 +39,7 @@ gulp.task('main-process', function() {
 })
 */
 
-gulp.task('watch', function() {
+gulp.task('watch', ['build'], function() {
   gulp.watch('src/**/*', ['build'])
   gulp.watch('static/**/*', ['build'])
 })

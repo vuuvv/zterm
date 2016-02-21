@@ -9,14 +9,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "ansi-to-html": "^0.3.0",
     "babel-preset-es2015": "^6.5.0",
+    "electron-rebuild": "^1.1.3",
     "fs-jetpack": "^0.7.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-rollup": "^1.7.0",
+    "lodash": "^4.5.0",
     "rollup": "^0.25.4"
   },
   "dependencies": {
+    "pty.js": "file:///e:\\code\\js\\terminal\\pty.js",
     "jquery": "^2.2.0"
   }
 }

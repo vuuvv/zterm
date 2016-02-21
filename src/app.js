@@ -1,15 +1,39 @@
 'use strict';
 const $ = require('jquery');
 const remote = require('electron').remote;
-const proc = remote.require('child_process');
+//const proc = remote.require('child_process');
+var pty = require('pty.js');
+var Convert = require('ansi-to-html');
+var convert = new Convert();
+var _ = require('lodash');
+var proc = remote.process;
 
-console.log(remote);
+var sh = 'D:\\msys64\\usr\\bin\\bash';
+// sh = 'bash';
 
-var execute = function(input) {
-  let args = input.split(/\s+/);
-  let command = args.shift();
-  var response = proc.spawnSync(command, args);
-  return response.stdout.toString();
+proc.stdin.setEncoding('utf8');
+//proc.stdout.setEncoding('utf8');
+
+var buffer = '';
+
+function run(command) {
+  var terminal = pty.spawn(sh, ['--login', '-c', '-i', command], {
+    name: 'xterm-256color',
+    cols: 120,
+    rows: 80,
+    cwd: proc.env.HOME,
+    env: proc.env
+  });
+
+  terminal.on('data', function(data) {
+    buffer += data;
+  });
+
+  terminal.on('end', function(data) {
+    print(buffer);
+    buffer = '';
+    createPrompt();
+  })
 }
 
 var createPrompt = function() {
@@ -17,7 +41,6 @@ var createPrompt = function() {
 
   var newInput = document.createElement("input");
   newInput.type = "text";
-  newInput.name = "amount";
   $(newInput).addClass('currentInput');
   $("#board").append(newInput);
   newInput.focus();
@@ -27,17 +50,16 @@ var createPrompt = function() {
 var addEnterHander = function() {
   $('.currentInput').keypress(function(e) {
     if (e.which == 13) {
-      print($('.currentInput').val());
-      createPrompt();
+      run($('.currentInput').val());
       return false;
     }
   });
 };
 
-var print = function(command) {
+var print = function(data) {
   var container = document.createElement("pre");
   container.className += "currentInput";
-  container.innerHTML = escapeHtml(execute(command));
+  container.innerHTML = convert.toHtml(data);
   $("#board").append(container);
 }
 
