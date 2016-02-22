@@ -20,7 +20,7 @@
     "rollup": "^0.25.4"
   },
   "dependencies": {
-    "pty.js": "file:///e:\\code\\js\\terminal\\pty.js",
+    "pty.js": "file:./deps/pty.js",
     "jquery": "^2.2.0"
   }
 }
