@@ -7,33 +7,92 @@ var Convert = require('ansi-to-html');
 var convert = new Convert();
 var _ = require('lodash');
 var proc = remote.process;
+var stream = require('stream');
 
-var sh = 'D:\\msys64\\usr\\bin\\bash.exe';
+var sh = 'D:/msys64/usr/bin/bash.exe';
 // sh = 'bash';
 
 proc.stdin.setEncoding('utf8');
 //proc.stdout.setEncoding('utf8');
+var env = proc.env;
+
+env.PATH += ";D:/msys64/usr/bin/"
 
 var buffer = '';
 
+var terminal = pty.spawn(sh, ['--login'], {
+  name: 'xterm-256color',
+  cols: 80,
+  rows: 25,
+  cwd: proc.env.HOME,
+  env: env
+});
+
+var print = function(c) {
+  buffer += String.fromCharCode(c);
+  var pre = document.getElementById("terminal");
+  pre.innerHTML = buffer;
+  document.body.scrollTop = document.body.scrollHeight;
+}
+
+var transform = new stream.Transform();
+
+transform._transform = function(chunk, encoding, done) {
+  var r = [];
+  var i = 0;
+  while (i < chunk.length) {
+    if (chunk[i] == 27) {
+      i++
+      var b = chunk[i];
+      if (b == '['.charCodeAt(0)) {
+        // more than two character sequences
+        var csi = '';
+        i++;
+        while(chunk[i] < 64 || chunk[i] > 126) {
+          csi += String.fromCharCode(chunk[i]);
+          i++;
+        }
+        csi += chunk[i];
+        //console.log(csi);
+      } else if (b >= 64 && b <= 95) {
+        // two character escape sequences
+      }
+    } else {
+      // TODO: should process special character like \r, \n
+      print(chunk[i]);
+    }
+
+    // end
+    i++;
+  }
+  console.log(chunk.toString());
+  done();
+};
+
+terminal.pipe(transform);
+
+$(document).keypress(function(e) {
+  var c = new Buffer([e.keyCode]).toString()
+  terminal.write(c);
+})
+
+
+/*
+terminal.on('data', function(data) {
+  console.log(data);
+  buffer += data;
+});
+
+terminal.on('end', function(data) {
+  console.log('end: ' + data);
+  print(buffer);
+  buffer = '';
+  createPrompt();
+})
+
+terminal.write('ls ');
+
 function run(command) {
-  var terminal = pty.spawn(sh, ['--login', '-c', '-i', command], {
-    name: 'xterm-256color',
-    cols: 120,
-    rows: 80,
-    cwd: proc.env.HOME,
-    env: proc.env
-  });
-
-  terminal.on('data', function(data) {
-    buffer += data;
-  });
-
-  terminal.on('end', function(data) {
-    print(buffer);
-    buffer = '';
-    createPrompt();
-  })
 }
 
 var createPrompt = function() {
@@ -59,7 +118,8 @@ var addEnterHander = function() {
 var print = function(data) {
   var container = document.createElement("pre");
   container.className += "currentInput";
-  container.innerHTML = convert.toHtml(data);
+  container.innerHTML = data;
+  //container.innerHTML = convert.toHtml(data);
   $("#board").append(container);
 }
 
@@ -73,3 +133,4 @@ var escapeHtml = function(unsafe) {
 }
 
 createPrompt();
+*/
