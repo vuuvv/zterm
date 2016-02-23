@@ -18,7 +18,7 @@ var env = proc.env;
 
 env.PATH += ";D:/msys64/usr/bin/"
 
-var buffer = '';
+var buffer = [];
 
 var terminal = pty.spawn(sh, ['--login'], {
   name: 'xterm-256color',
@@ -28,44 +28,70 @@ var terminal = pty.spawn(sh, ['--login'], {
   env: env
 });
 
-var print = function(c) {
-  buffer += String.fromCharCode(c);
+var print = function(lines) {
+  //buffer = buffer.concat(c);
+  var html = "";
+  lines.forEach(function(line) {
+    html += new Buffer(line, 'utf8').toString();
+  });
   var pre = document.getElementById("terminal");
-  pre.innerHTML = buffer;
+  pre.innerHTML = html;
   document.body.scrollTop = document.body.scrollHeight;
 }
 
+
+var tCount = 0;
 var transform = new stream.Transform();
 
+const LN = '\n'.charCodeAt(0);
+const CR = '\r'.charCodeAt(0);
+
+var lines = [[]];
+
 transform._transform = function(chunk, encoding, done) {
-  var r = [];
   var i = 0;
+  var line = lines[lines.length - 1];
   while (i < chunk.length) {
-    if (chunk[i] == 27) {
-      i++
-      var b = chunk[i];
-      if (b == '['.charCodeAt(0)) {
+    let c = chunk[i];
+    if (c == 27) {
+      c = chunk[++i];
+      if (c == '['.charCodeAt(0)) {
         // more than two character sequences
         var csi = '';
-        i++;
-        while(chunk[i] < 64 || chunk[i] > 126) {
-          csi += String.fromCharCode(chunk[i]);
-          i++;
+        c = chunk[++i];
+        while(c < 64 || c > 126) {
+          csi += String.fromCharCode(c);
+          c = chunk[++i];
         }
-        csi += chunk[i];
+        csi += String.fromCharCode(c);
+        if (csi == '2K') {
+          lines[lines.length - 1] = line = [];
+        }
         //console.log(csi);
-      } else if (b >= 64 && b <= 95) {
+      } else if (c >= 64 && c <= 95) {
         // two character escape sequences
       }
     } else {
       // TODO: should process special character like \r, \n
-      print(chunk[i]);
+      if (c === LN) {
+        // new line
+        line.push(c);
+        line = [];
+        lines.push(line);
+      } else if (c === CR) {
+        // lines[lines.length - 1] = line = [];
+      } else {
+        line.push(c);
+      }
     }
 
     // end
     i++;
   }
-  console.log(chunk.toString());
+
+  print(lines);
+  //console.log(chunk.toString());
+  console.log((tCount++) + '*****************************************************')
   done();
 };
 

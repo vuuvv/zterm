@@ -16,6 +16,7 @@
     "fs-jetpack": "^0.7.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
+    "gulp-plumber": "^1.1.0",
     "gulp-rollup": "^1.7.0",
     "lodash": "^4.5.0",
     "pty.js": "file:deps\\pty.js",
