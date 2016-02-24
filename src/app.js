@@ -20,10 +20,15 @@ env.PATH += ";D:/msys64/usr/bin/"
 
 var buffer = [];
 
+var fCaculator = document.getElementById("font-size-caculator")
+
+console.log(fCaculator.clientWidth);
+console.log(fCaculator.clientHeight);
+
 var terminal = pty.spawn(sh, ['--login'], {
   name: 'xterm-256color',
-  cols: 80,
-  rows: 25,
+  cols: Math.floor(window.innerWidth / fCaculator.clientWidth),
+  rows: Math.floor(window.innerHeight / fCaculator.clientHeight),
   cwd: proc.env.HOME,
   env: env
 });

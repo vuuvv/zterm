@@ -4,15 +4,23 @@
     <meta charset="utf-8">
     <title>Hello World</title>
     <style>
-    body, pre {
+    body, pre, #font-size-caculator {
       background-color: #292C33;
       color: #95A2BB;
       font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
       font-size: 14px;
     }
+    #font-size-caculator {
+      position: absolute;
+      visibility: hidden;
+      height: auto;
+      width: auto;
+      white-space: nowrap;
+    }
     </style>
   </head>
   <body>
+    <div id="font-size-caculator">M</div>
     <pre id="terminal"></pre>
     <script>
     require('../lib/app.js');
