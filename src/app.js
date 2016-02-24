@@ -105,7 +105,23 @@ terminal.pipe(transform);
 $(document).keypress(function(e) {
   var c = new Buffer([e.keyCode]).toString()
   terminal.write(c);
+  return true;
 })
+
+$(document).keydown(function(e) {
+  var key;
+  switch (e.keyCode) {
+    case 8:
+      // backspace
+      key = '\x17';
+      break;
+    default:
+      return true;
+  }
+  var c = new Buffer([e.keyCode]).toString()
+  terminal.write(c);
+  return false;
+});
 
 
 /*
