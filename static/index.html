@@ -17,11 +17,21 @@
       width: auto;
       white-space: nowrap;
     }
+    .zterm-cursor {
+      width: 8px;
+      height: 17px;
+      z-index: 4;
+      position: absolute;
+      box-sizing: border-box;
+      border-left: 2px solid;
+      color: white;
+    }
     </style>
   </head>
   <body>
     <div id="font-size-caculator">M</div>
     <pre id="terminal"></pre>
+    <div class="zterm-cursor"></div>
     <script>
     require('../lib/app.js');
     </script>

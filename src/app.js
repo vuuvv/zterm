@@ -3,11 +3,11 @@ const $ = require('jquery');
 const remote = require('electron').remote;
 //const proc = remote.require('child_process');
 var pty = require('pty.js');
-var Convert = require('ansi-to-html');
-var convert = new Convert();
-var _ = require('lodash');
 var proc = remote.process;
+
 var stream = require('stream');
+var Input = require('./input');
+var keys = require('./keys');
 
 var sh = 'D:/msys64/usr/bin/bash.exe';
 // sh = 'bash';
@@ -25,13 +25,17 @@ var fCaculator = document.getElementById("font-size-caculator")
 console.log(fCaculator.clientWidth);
 console.log(fCaculator.clientHeight);
 
-var terminal = pty.spawn(sh, ['--login'], {
+var terminal = window.terminal = pty.spawn("d:/msys64/usr/bin/ls.exe", ["/f"], {
   name: 'xterm-256color',
   cols: Math.floor(window.innerWidth / fCaculator.clientWidth),
   rows: Math.floor(window.innerHeight / fCaculator.clientHeight),
   cwd: proc.env.HOME,
   env: env
 });
+
+terminal.writeCode = function() {
+  terminal.write(new Buffer(arguments), "buffer");
+}
 
 var print = function(lines) {
   //buffer = buffer.concat(c);
@@ -56,6 +60,7 @@ var lines = [[]];
 transform._transform = function(chunk, encoding, done) {
   var i = 0;
   var line = lines[lines.length - 1];
+  console.log(chunk.toString().replace("0x1b", "^[").replace("\r", "\\r"))
   while (i < chunk.length) {
     let c = chunk[i];
     if (c == 27) {
@@ -96,7 +101,6 @@ transform._transform = function(chunk, encoding, done) {
 
   print(lines);
   //console.log(chunk.toString());
-  console.log((tCount++) + '*****************************************************')
   done();
 };
 
@@ -104,80 +108,16 @@ terminal.pipe(transform);
 
 $(document).keypress(function(e) {
   var c = new Buffer([e.keyCode]).toString()
+  console.log("0x" + e.keyCode.toString(16));
   terminal.write(c);
   return true;
 })
 
 $(document).keydown(function(e) {
-  var key;
-  switch (e.keyCode) {
-    case 8:
-      // backspace
-      key = '\x17';
-      break;
-    default:
-      return true;
+  var key = keys.translate(e);
+  if (key === false) {
+    return true;
   }
-  var c = new Buffer([e.keyCode]).toString()
-  terminal.write(c);
+  terminal.write(key);
   return false;
 });
-
-
-/*
-terminal.on('data', function(data) {
-  console.log(data);
-  buffer += data;
-});
-
-terminal.on('end', function(data) {
-  console.log('end: ' + data);
-  print(buffer);
-  buffer = '';
-  createPrompt();
-})
-
-terminal.write('ls ');
-
-function run(command) {
-}
-
-var createPrompt = function() {
-  $('.currentInput').removeClass('currentInput');
-
-  var newInput = document.createElement("input");
-  newInput.type = "text";
-  $(newInput).addClass('currentInput');
-  $("#board").append(newInput);
-  newInput.focus();
-  addEnterHander();
-}
-
-var addEnterHander = function() {
-  $('.currentInput').keypress(function(e) {
-    if (e.which == 13) {
-      run($('.currentInput').val());
-      return false;
-    }
-  });
-};
-
-var print = function(data) {
-  var container = document.createElement("pre");
-  container.className += "currentInput";
-  container.innerHTML = data;
-  //container.innerHTML = convert.toHtml(data);
-  $("#board").append(container);
-}
-
-var escapeHtml = function(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;")
-}
-
-createPrompt();
-*/
