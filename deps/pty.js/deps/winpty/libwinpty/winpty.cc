@@ -52,7 +52,7 @@ std::string to_utf8(const wchar_t* buffer, int len)
                 const_cast< char* >(newbuffer.c_str()),
                 nChars,
                 NULL,
-                NULL); 
+                NULL);
 
         return newbuffer;
 }
@@ -66,7 +66,7 @@ std::wstring to_wstring(const std::string& s)
 {
  int len;
  int slength = (int)s.length() + 1;
- len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0); 
+ len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
  wchar_t* buf = new wchar_t[len];
  MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
  std::wstring r(buf);
@@ -265,7 +265,7 @@ static std::wstring getDesktopFullName()
 
 static void startAgentProcess(const BackgroundDesktop &desktop,
                               std::wstring &controlPipeName,
-                              std::wstring &dataPipeName, 
+                              std::wstring &dataPipeName,
                               int cols, int rows)
 {
     bool success;
@@ -287,6 +287,7 @@ static void startAgentProcess(const BackgroundDesktop &desktop,
     std::vector<wchar_t> cmdline(agentCmdLine.size() + 1);
     agentCmdLine.copy(&cmdline[0], agentCmdLine.size());
     cmdline[agentCmdLine.size()] = L'\0';
+
     success = CreateProcess(agentProgram.c_str(),
                             &cmdline[0],
                             NULL, NULL,
@@ -455,7 +456,7 @@ WINPTY_API winpty_t *winpty_open_use_own_datapipe(const wchar_t *dataPipe, int c
 	}
 
 	return pc;
-} 
+}
 
 WINPTY_API int winpty_start_process(winpty_t *pc,
                                     const wchar_t *appname,

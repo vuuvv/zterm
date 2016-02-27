@@ -16,7 +16,7 @@ proc.stdin.setEncoding('utf8');
 //proc.stdout.setEncoding('utf8');
 var env = proc.env;
 
-env.PATH += ";D:/msys64/usr/bin/"
+//env.PATH += ";D:/msys64/usr/bin/"
 
 var buffer = [];
 
@@ -25,13 +25,15 @@ var fCaculator = document.getElementById("font-size-caculator")
 console.log(fCaculator.clientWidth);
 console.log(fCaculator.clientHeight);
 
-var terminal = window.terminal = pty.spawn("d:/msys64/usr/bin/ls.exe", ["/f"], {
+var terminal = window.terminal = pty.spawn("cmd.exe", [], {
   name: 'xterm-256color',
   cols: Math.floor(window.innerWidth / fCaculator.clientWidth),
   rows: Math.floor(window.innerHeight / fCaculator.clientHeight),
-  cwd: proc.env.HOME,
-  env: env
 });
+
+terminal.write("set HOME=\r")
+terminal.write("set INPUTRC=\r")
+terminal.write(sh + " --login -i\r");
 
 terminal.writeCode = function() {
   terminal.write(new Buffer(arguments), "buffer");
