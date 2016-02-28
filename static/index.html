@@ -4,19 +4,27 @@
     <meta charset="utf-8">
     <title>Hello World</title>
     <style>
-    body, pre, #font-size-caculator {
-      background-color: #292C33;
-      color: #95A2BB;
-      font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
-      font-size: 14px;
+    .term-view {
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      left:0;
+      overflow: hidden;
+
+      background: #282c34;
+      color: #abb2bf;
     }
-    #font-size-caculator {
+
+    .font-measurer {
+      font: inherit;
       position: absolute;
       visibility: hidden;
       height: auto;
       width: auto;
       white-space: nowrap;
     }
+
     .zterm-cursor {
       width: 8px;
       height: 17px;

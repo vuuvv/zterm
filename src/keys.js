@@ -247,7 +247,7 @@ function _key(code) {
   return browserKeyMap[code];
 }
 
-function translate(key) {
+export function translate(key) {
   let keyCode = key.keyCode;
   let keyname = _key(keyCode);
   if (!keyname) {
@@ -289,8 +289,4 @@ function translate(key) {
     }
   }
   return false;
-}
-
-module.exports = {
-  translate: translate,
 }

@@ -1,4 +1,14 @@
 'use strict';
+
+import {Terminal} from "./terminal"
+
+let t = new Terminal(document.body);
+t.send("set HOME=\r");
+t.send("set INPUTRC=\r");
+t.send("D:/msys64/usr/bin/bash.exe --login -i\r");
+//t.send("clear\r");
+
+/*
 const $ = require('jquery');
 const remote = require('electron').remote;
 //const proc = remote.require('child_process');
@@ -123,3 +133,4 @@ $(document).keydown(function(e) {
   terminal.write(key);
   return false;
 });
+*/
