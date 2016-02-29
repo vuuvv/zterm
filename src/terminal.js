@@ -4,17 +4,32 @@ import {Transform} from 'stream';
 const pty = require('pty.js');
 
 import {translate} from './keys.js';
+import {Cursor} from './cursor.js';
 
 const LN = '\n'.charCodeAt(0);
 const CR = '\r'.charCodeAt(0);
+
+const DummyLineNode = document.createElement('div');
+DummyLineNode.className = 'line';
+DummyLineNode.style.position = 'absolute';
+DummyLineNode.style.visibility = 'hidden';
+DummyLineNode.appendChild(document.createElement('span'));
+DummyLineNode.appendChild(document.createElement('span'));
+DummyLineNode.appendChild(document.createElement('span'));
+DummyLineNode.appendChild(document.createElement('span'));
+DummyLineNode.children[0].textContent = 'x';
+DummyLineNode.children[1].textContent = '我';
+DummyLineNode.children[2].textContent = 'ﾊ';
+DummyLineNode.children[3].textContent = '세';
 
 export class Terminal extends Transform {
   constructor(container, font) {
     super();
     this.font = font || "Courier New";
     this.container = container;
-    this.cursor = { x: 0, y: 0 };
+    this.cursor = new Cursor();
     this.lines = [[]];
+    this.screenOffset = 0;
     this.setupElement();
     this.setupTerminal();
   }
@@ -27,12 +42,19 @@ export class Terminal extends Transform {
     elem.addEventListener('keypress', this.keypress.bind(this));
     elem.setAttribute('tabindex', "1");
 
-    let fontMeasurer = this.fontMeasurer = document.createElement('div');
-    fontMeasurer.classList.add('font-measurer');
-    fontMeasurer.innerHTML = "A";
-    elem.appendChild(fontMeasurer);
+    let termLines = this.termLines = document.createElement('div');
+    termLines.classList.add('term-lines');
+    elem.appendChild(termLines);
+
+    let cursorElement = this.cursorElement = document.createElement('div');
+    cursorElement.classList.add('cursor');
+    cursorElement.style.left = 0;
+    cursorElement.style.top = 0;
+    elem.appendChild(cursorElement);
 
     this.container.appendChild(elem);
+
+    this.measureLineHeightAndCharWidth();
   }
 
   setupTerminal() {
@@ -82,9 +104,13 @@ export class Terminal extends Transform {
             csi += String.fromCharCode(c);
             c = chunk[++i];
           }
+          let action = String.fromCharCode(c);
+          let p = csi;
           csi += String.fromCharCode(c);
           if (csi == '2K') {
             lines[lines.length - 1] = line = [];
+          } else if (action == 'G') {
+            this.cursor.moveX(Math.max(0, parseInt(p) - 1));
           }
           //console.log(csi);
         } else if (c >= 64 && c <= 95) {
@@ -94,9 +120,10 @@ export class Terminal extends Transform {
         // TODO: should process special character like \r, \n
         if (c === LN) {
           // new line
-          line.push(c);
+          // line.push(c);
           line = [];
           lines.push(line);
+          this.newLine();
         } else if (c === CR) {
           // lines[lines.length - 1] = line = [];
         } else {
@@ -110,28 +137,48 @@ export class Terminal extends Transform {
     done();
   }
 
+  measureLineHeightAndCharWidth() {
+    this.termLines.appendChild(DummyLineNode);
+    this.charWidth = DummyLineNode.children[0].getBoundingClientRect().width;
+    this.lineHeight = DummyLineNode.getBoundingClientRect().height;
+    this.termLines.removeChild(DummyLineNode);
+  }
+
   render() {
     let view = document.createElement('div');
     view.style.position = "absolute";
-    view.style.bottom = "0";
+    view.style.top = -this.screenOffset * this.lineHeight + 'px';
     this.lines.forEach((line) => {
       let lineView = document.createElement('div');
-      lineView.innerHTML = new Buffer(line, 'utf8').toString()
-        .replace(/ /g, "&nbsp;")
-        .replace(/\>/g, "&gt;")
-        .replace(/\</g, "&lt;");
+      lineView.style.height = this.lineHeight + 'px';
+      if (!line.length) {
+        lineView.innerHTML = "&nbsp;"
+      } else {
+        lineView.innerHTML = new Buffer(line, 'utf8').toString()
+          .replace(/ /g, "&nbsp;")
+          .replace(/\>/g, "&gt;")
+          .replace(/\</g, "&lt;");
+      }
       view.appendChild(lineView);
     })
-    this.element.innerHTML = '';
-    this.element.appendChild(view);
+    this.termLines.innerHTML = '';
+    this.termLines.appendChild(view);
+
+    this.renderCursor();
   }
 
-  get charWidth() {
-    return this.fontMeasurer.clientWidth;
+  renderCursor() {
+    let x = this.cursor.x * this.charWidth;
+    let y = (this.cursor.y - this.screenOffset) * this.lineHeight;
+    this.cursorElement.style.left = x + 'px';
+    this.cursorElement.style.top = y + 'px';
   }
 
-  get charHeight() {
-    return this.fontMeasurer.clientHeight;
+  newLine() {
+    this.cursor.newLine();
+    if (this.cursor.y > this.height) {
+      this.screenOffset = this.cursor.y - this.height + 1;
+    }
   }
 
   get width() {
@@ -139,6 +186,6 @@ export class Terminal extends Transform {
   }
 
   get height() {
-    return Math.floor(this.element.clientHeight / this.charHeight);
+    return Math.floor(this.element.clientHeight / this.lineHeight);
   }
 }
