@@ -1,6 +1,6 @@
 'use strict';
 
-import {Terminal} from "./terminal"
+import {Terminal} from "./term"
 
 let t = new Terminal(document.body);
 t.send("set HOME=\r");

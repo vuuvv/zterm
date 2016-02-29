@@ -4,10 +4,7 @@ import {Transform} from 'stream';
 const pty = require('pty.js');
 
 import {translate} from './keys.js';
-import {Cursor} from './cursor.js';
-
-const LN = '\n'.charCodeAt(0);
-const CR = '\r'.charCodeAt(0);
+import {TerminalOutput} from './termout.js';
 
 const DummyLineNode = document.createElement('div');
 DummyLineNode.className = 'line';
@@ -22,13 +19,11 @@ DummyLineNode.children[1].textContent = '我';
 DummyLineNode.children[2].textContent = 'ﾊ';
 DummyLineNode.children[3].textContent = '세';
 
-export class Terminal extends Transform {
+export class Terminal extends TerminalOutput {
   constructor(container, font) {
     super();
     this.font = font || "Courier New";
     this.container = container;
-    this.cursor = new Cursor();
-    this.lines = [[]];
     this.screenOffset = 0;
     this.setupElement();
     this.setupTerminal();
@@ -64,6 +59,7 @@ export class Terminal extends Transform {
       rows: this.height
     });
     this.terminal.pipe(this);
+    this.on('predone', this.render.bind(this))
   }
 
   send(chunk) {
@@ -85,56 +81,6 @@ export class Terminal extends Transform {
     let c = String.fromCharCode(e.keyCode);
     this.send(c);
     return false;
-  }
-
-  _transform(chunk, encoding, done) {
-    console.log(chunk.toString().replace("0x1b", "^[").replace("\r", "\\r"));
-    let lines = this.lines;
-    let line = lines[lines.length - 1];
-    let i = 0;
-    while (i < chunk.length) {
-      let c = chunk[i];
-      if (c == 27) {
-        c = chunk[++i];
-        if (c == '['.charCodeAt(0)) {
-          // more than two character sequences
-          var csi = '';
-          c = chunk[++i];
-          while(c < 64 || c > 126) {
-            csi += String.fromCharCode(c);
-            c = chunk[++i];
-          }
-          let action = String.fromCharCode(c);
-          let p = csi;
-          csi += String.fromCharCode(c);
-          if (csi == '2K') {
-            lines[lines.length - 1] = line = [];
-          } else if (action == 'G') {
-            this.cursor.moveX(Math.max(0, parseInt(p) - 1));
-          }
-          //console.log(csi);
-        } else if (c >= 64 && c <= 95) {
-          // two character escape sequences
-        }
-      } else {
-        // TODO: should process special character like \r, \n
-        if (c === LN) {
-          // new line
-          // line.push(c);
-          line = [];
-          lines.push(line);
-          this.newLine();
-        } else if (c === CR) {
-          // lines[lines.length - 1] = line = [];
-        } else {
-          line.push(c);
-        }
-      }
-      // end
-      i++;
-    }
-    this.render();
-    done();
   }
 
   measureLineHeightAndCharWidth() {
@@ -175,7 +121,7 @@ export class Terminal extends Transform {
   }
 
   newLine() {
-    this.cursor.newLine();
+    super.newLine();
     if (this.cursor.y > this.height) {
       this.screenOffset = this.cursor.y - this.height + 1;
     }
